@@ -20,16 +20,18 @@ let g:python3_host_prog = '/usr/bin/python3'
 let g:loaded_python_provider = 1
 let g:go_bin_path = '/home/esatterwhite/local/go'
 let g:enable_bold_font = 1
+let g:vimspector_enable_mappings = 'HUMAN'
 
 " ALE
 let g:ale_go_langserver_executable = 'gopls'
 let g:ale_rust_rls_executable = 'rls'
 let g:ale_rust_analyzer_executable = 'rust-analyzer'
 let g:ale_completion_enabled = 1
+let g:ale_disable_lsp = 0
 let g:ale_linters = {
 \ 'python': ['flake8', 'yapf', 'pycodestyle'],
 \ 'go' : ['gopls'],
-\ 'lua': ['selene'],
+\ 'lua': ['selene', 'lua_ls'],
 \ 'rust': ['analyzer'],
 \ 'swagger': ['spectral']
 \ }
@@ -39,7 +41,7 @@ let g:ale_fixers = {
 \  'javascript': ['eslint'],
 \  'sh': ['shfmt'],
 \  'python': ['yapf', 'autopep8'],
-\  'lua': ['stylua']
+\  'lua': ['stylua', 'trim_whitespace']
 \ }
 
 " Gruvbox
@@ -49,7 +51,7 @@ let g:gruvbox_material_enable_bold = 1
 let gruvbox_material_ui_contrast = 'high'
 
 " Istanbul
-let g:istanbul#jsonPath = ['coverage/coverage-final.json', 'coverage/coverage.json']
+let g:istanbul#jsonPath = ['coverage/coverage-final.json', 'coverage/coverage.json', '.tap/report/coverage-final.json']
 
 
 " Airline
@@ -98,9 +100,17 @@ endfunction
 autocmd BufNewFile,BufRead Jenkinsfile set syntax=groovy
 autocmd BufNewFile,BufRead *.yaml.envsubst set syntax=yaml
 autocmd BufNewFile,BufRead *.swagger set syntax=json
+autocmd BufNewFile,BufRead Tiltfile* setlocal ft=tiltfile syntax=starlark
 
 autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 autocmd User Node if &filetype == "javascript" | setlocal expandtab | endif
+
+augroup Authzed
+  au!
+  autocmd BufNewFile,BufRead *.authzed set ft=authzed
+  autocmd BufNewFile,BufRead *.zed set ft=authzed
+  autocmd BufNewFile,BufRead *.azd set ft=authzed
+augroup END
 
 set completeopt=menuone,noinsert,noselect
 
@@ -124,68 +134,6 @@ autocmd User esearch_win_config
       \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
 
 nnoremap <leader>fh :call esearch#init({'paths': esearch#xargs#git_log()})<cr>
-
-call plug#begin('~/.config/nvim/plugins')
- " Plugins
-" Plug 'nvim-tree/nvim-tree.lua'
-" Plug 'airblade/vim-gitgutter'
-" Plug 'ctrlpvim/ctrlp.vim'
-" Plug 'nvim-tree/nvim-web-devicons'
-" Plug 'tpope/vim-fugitive'
-" Plug 'terryma/vim-multiple-cursors'
-" Plug 'vim-airline/vim-airline'
-" Plug 'retorillo/istanbul.vim'
-" Plug 'preservim/tagbar'
-" Plug 'tpope/vim-surround'
-" Plug 'tpope/vim-obsession'
-" Plug 'tpope/vim-dispatch'
-" Plug 'eugen0329/vim-esearch'
-" Plug 'mzlogin/vim-markdown-toc'
-" Plug 'dense-analysis/ale'
-" Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
-" Plug 'Yggdroot/indentLine'
-" Plug 'vim-airline/vim-airline-themes'
-" Plug 'dhruvasagar/vim-table-mode'
-" Plug 'tpope/vim-rhubarb'
-" Plug 'elzr/vim-json'
-" Plug 'liuchengxu/vista.vim'
-" Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-" Plug 'akinsho/toggleterm.nvim', {'tag' : 'v2.*'}
-" Plug 'echasnovski/mini.animate', { 'branch': 'stable' }
-" Plug 'williamboman/mason.nvim', { 'do': ':MasonUpdate' }
-"
-" " Rust Things
-" Plug 'neovim/nvim-lspconfig'
-" Plug 'simrat39/rust-tools.nvim'
-" Plug 'rust-lang/rust.vim'
-"
-" " Language Server Protocol things
-" Plug 'hrsh7th/nvim-cmp'
-" Plug 'hrsh7th/cmp-nvim-lsp'
-" Plug 'hrsh7th/cmp-path'
-" Plug 'hrsh7th/cmp-buffer'
-"
-" " Syntax
-" Plug 'towolf/vim-helm'
-" Plug 'tbastos/vim-lua'
-" Plug 'plasticboy/vim-markdown'
-" Plug 'moll/vim-node'
-" Plug 'chr4/nginx.vim'
-" Plug 'pangloss/vim-javascript'
-" Plug 'rust-lang/rust.vim'
-" Plug 'fatih/vim-go'
-" Plug 'cappyzawa/starlark.vim'
-" Plug 'mustache/vim-mustache-handlebars'
-" Plug 'cespare/vim-toml'
-"
-" " Themes
-"" Plug 'ellisonleao/gruvbox.nvim'
-" Plug 'sainnhe/gruvbox-material'
-" Plug 'kristijanhusak/vim-hybrid-material'
-" Plug 'EdenEast/nightfox.nvim'
-" Plug 'projekt0n/github-nvim-theme'
-" Plug 'vim-airline/vim-airline-themes'
-call plug#end()
 
 lua require('bootstrap')
 lua require('config')

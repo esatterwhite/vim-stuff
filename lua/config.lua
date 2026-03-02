@@ -1,9 +1,28 @@
 local status_ok, toggleterm = pcall(require, "toggleterm")
 local cmp = require("cmp")
-local lspconfig = require('lspconfig')
+--local lspconfig = require('lspconfig')
 local nvim_tree_api = require('nvim-tree.api')
-lspconfig.tsserver.setup{}
+local indent_line = require('ibl')
+
+--lspconfig.ts_ls.setup{}
+--lspconfig.tilt_ls.setup{}
+
 require("mason").setup()
+require('mason-lspconfig').setup({
+  handlers = {
+    function(server_name)
+      print(server_name)
+      --[[
+      if server_name == 'ts_ls' then
+        return
+      end
+      ]]--
+
+      require('lspconfig')[server_name].setup({})
+    end,
+  }
+})
+indent_line.setup()
 
 -- disable netrw at the very start of your init.lua (strongly advised)
 vim.g.loaded_netrw = 1
@@ -42,6 +61,7 @@ require("nvim-tree").setup({
   end
 })
 
+--[[
 lspconfig.rust_analyzer.setup({
   on_attach=function(client)
   end,
@@ -58,13 +78,14 @@ lspconfig.rust_analyzer.setup({
     }
   }
 })
-
+]]
 cmp.setup({
   preselect = cmp.PreselectMode.None,
   snippet = {
     expand = function(args)
       --vim.fn["vsnip#anonymous"](args.body)
       --require('luasnip').lsp_expand(args.body)
+      vim.snippet.expand(args.body)
     end,
   },
   mapping = {
@@ -92,6 +113,19 @@ cmp.setup({
   },
 })
 
+local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+parser_config.authzed = {
+        install_info = {
+                url = "https://github.com/mleonidas/tree-sitter-authzed", -- local path or git repo
+                files = { "src/parser.c" },
+                generate_requires_npm = false,
+                requires_generate_from_grammar = false,
+                -- optional entries:
+                branch = "main", -- default branch in case of git repo if different from master
+        },
+        filetype = "authzed", -- if filetype does not match the parser name
+}
+
 if not status_ok then return end
 toggleterm.setup({
   size = 100,
@@ -107,4 +141,3 @@ toggleterm.setup({
     },
   },
 })
-
