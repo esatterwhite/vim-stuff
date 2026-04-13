@@ -44,12 +44,6 @@ let g:ale_fixers = {
 \  'lua': ['stylua', 'trim_whitespace']
 \ }
 
-" Gruvbox
-let g:gruvbox_material_better_performance = 1
-let g:gruvbox_material_background = 'medium'
-let g:gruvbox_material_enable_bold = 1
-let gruvbox_material_ui_contrast = 'high'
-
 " Istanbul
 let g:istanbul#jsonPath = ['coverage/coverage-final.json', 'coverage/coverage.json', '.tap/report/coverage-final.json']
 

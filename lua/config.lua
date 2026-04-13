@@ -28,23 +28,6 @@ indent_line.setup()
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
---[[
-require('gruvbox').setup({
-  italic = {
-    strings = false,
-    comments = true,
-    folds = true,
-    operators = false,
-  },
-  transparent_mode = false,
-  contrast = "",
-  dim_inactive = false,
-  overrides = {
-    Todo = { fg = '#d3869b' },
-  },
-})
-]]
-
 -- OR setup with some options
 require("nvim-tree").setup({
   sort_by = "case_sensitive",
@@ -112,19 +95,6 @@ cmp.setup({
     { name = "buffer" },
   },
 })
-
-local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-parser_config.authzed = {
-        install_info = {
-                url = "https://github.com/mleonidas/tree-sitter-authzed", -- local path or git repo
-                files = { "src/parser.c" },
-                generate_requires_npm = false,
-                requires_generate_from_grammar = false,
-                -- optional entries:
-                branch = "main", -- default branch in case of git repo if different from master
-        },
-        filetype = "authzed", -- if filetype does not match the parser name
-}
 
 if not status_ok then return end
 toggleterm.setup({

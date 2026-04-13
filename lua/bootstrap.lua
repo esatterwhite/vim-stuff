@@ -41,6 +41,33 @@ require('lazy').setup({
 , 'tpope/vim-fugitive'
 , 'terryma/vim-multiple-cursors'
 , {
+    'nvim-treesitter/nvim-treesitter',
+    lazy = false,
+    build = ':TSUpdate',
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter-textobjects',
+    },
+    config = function()
+      vim.defer_fn(function()
+        local ok, configs = pcall(require, 'nvim-treesitter.configs')
+        if ok then
+          configs.setup({
+            ensure_installed = { 'http', 'json', 'lua', 'vim', 'vimdoc', 'kulala_http' },
+            auto_install = true,
+            highlight = { enable = true },
+            indent = { enable = true },
+          })
+          vim.filetype.add({
+            extension = {
+              http = 'http',
+              rest = 'http',
+            },
+          })
+        end
+      end, 100)
+    end
+  }
+, {
     'vim-airline/vim-airline'
   , lazy = false
   , config = function()
@@ -79,7 +106,32 @@ require('lazy').setup({
    }
   }
 , {
+    "ramilito/kubectl.nvim",
+    -- use a release tag to download pre-built binaries
+    version = "2.*",
+    -- OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
+    -- build = 'make build',
+    -- OR if you use nix, build from source with:
+    -- build = 'nix run .#build-plugin',
+    dependencies = "saghen/blink.download",
+    config = function()
+      require("kubectl").setup()
+    end,
+  }
+, {
     "mistweaverco/kulala.nvim",
+    lazy = false,  -- Load immediately to register parser
+    config = function(_, opts)
+      -- Set up kulala with options
+      require("kulala").setup(opts)
+      
+      -- Ensure parser is registered
+      vim.defer_fn(function()
+        pcall(function()
+          vim.treesitter.language.register("kulala_http", {"http", "rest"})
+        end)
+      end, 100)
+    end,
     keys = {
       { "<leader>tt", desc = "Send request" },
       { "<leader>ta", desc = "Send all requests" },
@@ -122,38 +174,96 @@ require('lazy').setup({
       }
     }
   }
+
 , {
-    'yetone/avante.nvim'
-  ,  build = vim.fn.has("win32") ~= 0 and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" or "make"
-  , event = 'VeryLazy'
-  , version = false
-  , opts = {
-      instructions_file = '.api/context.md'
-    , provider = 'claude'
-    , providers = {
-        claude = {
-          --model = 'claude-haiku-4-5',
-          model = 'claude-sonnet-4-20250514',
-          --[[ model = 'claude-opus-4-1',
+    'yetone/avante.nvim',
+    build = vim.fn.has("win32") ~= 0 and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" or "make",
+    event = 'VeryLazy',
+    version = false,
+    opts = {
+      provider = "glmflash", -- Matches the key in 'vendors'
+      instructions_file = '.api/context.md',
+      use_absolute_path = true,
+      web_search_engine = {
+        provider = "tavily",
+      },
+      input = { provider = "snacks" },
+      selector = { provider = "snacks" },
+      providers = {
+        ---@type AvanteProvider
+        qwencoder = {
+          ['local'] = true,
+          __inherited_from = "openai", -- Good choice, handles the heavy lifting
+          endpoint = "http://172.26.160.1:11434/v1",
+          model = "qwen3-coder-next:q8_0", -- Note: ensure you pull the ':q8_0' tag
+          disable_tools = false,
+          max_tokens = 8192,
+          mode = "agentic",
+          api_key_name = "",
+          is_env_set = function()
+            return true
+          end,
           extra_request_body = {
-            max_tokens = 32000,
+            stream = true,
+            options = {
+              num_gpu = 99,
+              num_ctx = 32768,
+              temperature = 0.0,
+              top_p = 0.9,
+              repeat_penalty = 1.1,
+              -- Note: 'num_predict' is the Ollama equivalent to 'max_tokens'
+              num_predict = 4096,
+            }
           }
-          --]]
-        }
-      }
-    }
-  , dependencies = {
-      "nvim-lua/plenary.nvim"
-    , "MunifTanjim/nui.nvim"
-    , {
-        'MeanderingProgrammer/render-markdown.nvim',
-        opts = {
-          file_types = { "markdown", "Avante" },
         },
+        glmflash = {
+
+          ['local'] = true,
+          __inherited_from = "openai", -- Good choice, handles the heavy lifting
+          endpoint = "http://172.26.160.1:11434/v1",
+          model = "glm-4.7-flash:q8_0", -- Note: ensure you pull the ':q8_0' tag
+          disable_tools = false,
+          max_tokens = 8192,
+          mode = "agentic",
+          api_key_name = "",
+          is_env_set = function()
+            return true
+          end,
+          extra_request_body = {
+            stream = true,
+            options = {
+              num_gpu = 99,
+              num_ctx = 65536,
+              temperature = 0.2,
+              top_p = 0.9,
+              repeat_penalty = 1.0,
+              -- Note: 'num_predict' is the Ollama equivalent to 'max_tokens'
+              num_predict = 4096,
+              f16_kv = true,
+            }
+          }
+        },
+      },
+      -- Suggested behavior tweaks for stability with MoE models
+      behaviour = {
+        auto_suggestions = false,
+      },
+      suggestion = {
+        debounce = 600,
+        throttle = 600,
+      },
+    },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "MunifTanjim/nui.nvim",
+      {
+        'MeanderingProgrammer/render-markdown.nvim',
+        opts = { file_types = { "markdown", "Avante" } },
         ft = { "markdown", "Avante" },
       }
     }
   }
+
 , {
     'lukas-reineke/indent-blankline.nvim',
     main = 'ibl',
@@ -287,7 +397,6 @@ require('lazy').setup({
     end
   }
   -- Markdown
-, {'euclio/vim-markdown-composer', ft = 'markdown', layz=true}
 , {'dhruvasagar/vim-table-mode', ft = 'markdown'}
 , {'plasticboy/vim-markdown', ft = 'markdown'}
 , {'mzlogin/vim-markdown-toc', ft = 'markdown'}
@@ -349,6 +458,11 @@ require('lazy').setup({
   , lazy = false
   , priority = 1000
   , config = function()
+      vim.g.gruvbox_material_better_performance = 1
+      vim.g.gruvbox_material_background = 'medium'
+      vim.g.gruvbox_material_enable_bold = 1
+      vim.g.gruvbox_material_ui_contrast = 'high'
+      vim.g.gruvbox_material_enable_italic = 1
       vim.cmd([[colorscheme gruvbox-material]])
     end
   }
@@ -356,3 +470,12 @@ require('lazy').setup({
 , {'kristijanhusak/vim-hybrid-material'}
 })
 
+
+-- Setup kulala HTTP parser registration
+-- This ensures the parser works when opening files with :edit
+vim.defer_fn(function()
+  local ok, kulala_parser = pcall(require, 'config.kulala_parser')
+  if ok then
+    kulala_parser.setup()
+  end
+end, 200)
